@@ -8,7 +8,6 @@ import com.bnpstudio.bookstore.entity.ResponseObject;
 import com.bnpstudio.bookstore.entity.SachEntity;
 import com.bnpstudio.bookstore.service.SachService;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.bnpstudio.bookstore.exception.BadRequestException;
@@ -19,11 +18,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
@@ -67,6 +64,17 @@ public class SachController {
         try {
             List<SachDetailDto> sachs = sachService.findProduct(sach);
             return sachs;
+            
+        } catch (Exception e) {
+            throw e;// TODO: handle exception
+        }
+    }
+    @PostMapping("/insert")
+    ResponseEntity<ResponseObject> insertSach(@RequestBody SachEntity sach) {
+        System.out.println("phg:"+sach.getTenSach());
+        try {
+            SachDetailDto sachs = sachService.insertProduct(sach);
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponseObject(HttpStatus.OK,"insert product successfully",sachs));
             
         } catch (Exception e) {
             throw e;// TODO: handle exception

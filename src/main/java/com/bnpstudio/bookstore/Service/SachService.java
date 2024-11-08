@@ -37,23 +37,84 @@ public class SachService {
         }
         return sachs.stream().map(SachDetailDto::new).collect(Collectors.toList());
     }
-    public SachDetailDto insertProduct(SachEntity sach) {
-        System.out.println(sach);
-        @SuppressWarnings("unchecked")
-        List<SachEntity> foundProducts = (List<SachEntity>) sachRepository.findByTenSachIgnoreCaseAndTacGiaIgnoreCase(sach.getTenSach().trim(),sach.getTacGia().trim());
-        if (foundProducts.size() > 0) {
-            throw new NotImplementedException("Product already taken");
-        }
-        sachRepository.save(sach);
-        return new SachDetailDto(sach);
-    }
     public List<SachDetailDto> findProduct(SachEntity sach) {
         System.out.println(sach);
+
         List<SachEntity> foundProducts =sachRepository.findByTenSachIgnoreCaseAndTacGiaIgnoreCase(sach.getTenSach().trim(),sach.getTacGia().trim());
         if (foundProducts.size() > 0) {
             return foundProducts.stream().map(SachDetailDto::new).collect(Collectors.toList());
         }
         throw new NotFoundException("not found products");
+    }
+    public SachDetailDto insertProduct(SachEntity sach) {
+        // System.out.println(sach);
+        if(sach.getAnhBia().trim().isEmpty()){
+            throw new NotImplementedException("Ảnh bìa không được để trống");
+        }
+        if(sach.getGhiChu().trim().isEmpty()){
+            throw new NotImplementedException("Ghi chú không được để trống");
+        }
+        if(sach.getGiaBan() == null){
+            throw new NotImplementedException("Giá bán không được để trống");
+        }
+        if(sach.getSoLuong()== null){
+            throw new NotImplementedException("Số lượng không được để trống");
+        }
+        if(sach.getIdDanhMuc()== null){
+            throw new NotImplementedException("Danh mục không được để trống");
+        }
+        if(sach.getNhaCungCap().trim().isEmpty()){
+            throw new NotImplementedException("Nhà cung cấp không được để trống");
+        }
+        if(sach.getTacGia().trim().isEmpty()){
+            throw new NotImplementedException("Tác giả không được để trống");
+        }
+        if(sach.getTenSach().trim().isEmpty()){
+            throw new NotImplementedException("Tên sách không được để trống");
+        }
+        List<SachEntity> foundProducts = sachRepository.findByTenSachIgnoreCaseAndTacGiaIgnoreCase(sach.getTenSach().trim(),sach.getTacGia().trim());
+        if (foundProducts.size() > 0) {
+            throw new NotImplementedException("Product already taken");
+        }
+        sach.setIdSach(null);
+        sachRepository.save(sach);
+        return new SachDetailDto(sach);
+    }
+    public SachDetailDto UpdateProduct(SachEntity sach) {
+        // System.out.println(sach);
+        if(sach.getIdSach() == null){
+            throw new NotImplementedException("Giá sản phẩm không được để trống");
+        }
+        if(sach.getAnhBia().trim().isEmpty()){
+            throw new NotImplementedException("Ảnh bìa không được để trống");
+        }
+        if(sach.getGhiChu().trim().isEmpty()){
+            throw new NotImplementedException("Ghi chú không được để trống");
+        }
+        if(sach.getGiaBan() == null){
+            throw new NotImplementedException("Giá bán không được để trống");
+        }
+        if(sach.getSoLuong()== null){
+            throw new NotImplementedException("Số lượng không được để trống");
+        }
+        if(sach.getIdDanhMuc()== null){
+            throw new NotImplementedException("Danh mục không được để trống");
+        }
+        if(sach.getNhaCungCap().trim().isEmpty()){
+            throw new NotImplementedException("Nhà cung cấp không được để trống");
+        }
+        if(sach.getTacGia().trim().isEmpty()){
+            throw new NotImplementedException("Tác giả không được để trống");
+        }
+        if(sach.getTenSach().trim().isEmpty()){
+            throw new NotImplementedException("Tên sách không được để trống");
+        }
+        List<SachEntity> foundProducts = sachRepository.findByTenSachIgnoreCaseAndTacGiaIgnoreCase(sach.getTenSach().trim(),sach.getTacGia().trim());
+        if (foundProducts.size() > 0) {
+            throw new NotImplementedException("Product already taken");
+        }
+        sachRepository.save(sach);
+        return new SachDetailDto(sach);
     }
 
 }

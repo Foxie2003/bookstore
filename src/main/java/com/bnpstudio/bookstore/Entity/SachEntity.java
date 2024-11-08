@@ -3,42 +3,55 @@ package com.bnpstudio.bookstore.entity;
 import com.bnpstudio.bookstore.dto.SachDetailDto;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "Sach")
 public class SachEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "IdSach")
     private Integer IdSach;
 
     @Column(name = "IdDanhMuc")
+    @NotNull(message = "ID danh mục không được để trống")
     private Integer IdDanhMuc;
 
     @Column(name = "TenSach")
+    @NotBlank(message = "Tên sách không được để trống")
     private String tenSach;
 
     @Column(name = "GiaBan")
+    @NotNull(message = "Giá bán không được để trống")
+    @Min(value = 0, message = "Giá bán phải lớn hơn hoặc bằng 0")
     private Float GiaBan;
 
     @Column(name = "TacGia")
+    @NotBlank(message = "Tên tác giả không được để trống")
     private String tacGia;
 
     @Column(name = "SoLuong")
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer SoLuong;
 
     @Column(name = "AnhBia")
+    @NotBlank(message = "Ảnh bìa không được để trống")
     private String AnhBia;
 
     @Column(name = "GhiChu")
     private String GhiChu;
 
     @Column(name = "NhaCungCap")
+    @NotBlank(message = "Nhà cung cấp không được để trống")
     private String NhaCungCap;
 
     public SachEntity() {
     }
 
-    public SachEntity(int idSach, int idDanhMuc, String tenSach, float giaBan, String tacGia, int soLuong,
+    public SachEntity(Integer idSach, Integer idDanhMuc, String tenSach, Float giaBan, String tacGia, Integer soLuong,
             String anhBia, String ghiChu, String nhaCungCap) {
         this.IdSach = idSach;
         this.IdDanhMuc = idDanhMuc;
@@ -71,19 +84,19 @@ public class SachEntity {
         this.AnhBia = anhBia;
     }
 
-    public int getIdSach() {
+    public Integer getIdSach() {
         return IdSach;
     }
 
-    public void setIdSach(int idSach) {
+    public void setIdSach(Integer idSach) {
         this.IdSach = idSach;
     }
 
-    public int getIdDanhMuc() {
+    public Integer getIdDanhMuc() {
         return IdDanhMuc;
     }
 
-    public void setIdDanhMuc(int idDanhMuc) {
+    public void setIdDanhMuc(Integer idDanhMuc) {
         this.IdDanhMuc = idDanhMuc;
     }
 
@@ -95,7 +108,7 @@ public class SachEntity {
         this.tenSach = tenSach;
     }
 
-    public float getGiaBan() {
+    public Float getGiaBan() {
         return GiaBan;
     }
 
@@ -111,11 +124,11 @@ public class SachEntity {
         this.tacGia = tacGia;
     }
 
-    public int getSoLuong() {
+    public Integer getSoLuong() {
         return SoLuong;
     }
 
-    public void setSoLuong(int soLuong) {
+    public void setSoLuong(Integer soLuong) {
         this.SoLuong = soLuong;
     }
 
