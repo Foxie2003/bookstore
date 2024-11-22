@@ -17,6 +17,10 @@ public interface SachRepository extends JpaRepository<SachEntity, Integer> {
 
     List<SachEntity> findByTenSachIgnoreCaseAndTacGiaIgnoreCase(String tenSach,String tacGia);
     
+    Page<SachEntity> findByIdDanhMuc(Pageable pageable, Integer idDanhMuc);
+
     @SuppressWarnings("null")
     Page<SachEntity> findAll(Pageable pageable);
+
+    Page<SachEntity> findByIdDanhMucIn(Pageable pageable, List<Integer> idDanhMucs);
 }

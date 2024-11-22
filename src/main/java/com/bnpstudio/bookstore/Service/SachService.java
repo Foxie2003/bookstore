@@ -12,9 +12,11 @@ import org.springframework.data.domain.Pageable;
 import com.bnpstudio.bookstore.dto.SachDetailDto;
 import com.bnpstudio.bookstore.entity.SachEntity;
 import com.bnpstudio.bookstore.entity.ChiTietDonHangEntity;
+import com.bnpstudio.bookstore.entity.DanhMucEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
 import com.bnpstudio.bookstore.exception.NotImplementedException;
 import com.bnpstudio.bookstore.repository.ChiTietDonHangRepository;
+import com.bnpstudio.bookstore.repository.DanhMucRepository;
 import com.bnpstudio.bookstore.repository.SachRepository;
 import jakarta.validation.Valid;
 
@@ -22,6 +24,8 @@ import jakarta.validation.Valid;
 public class SachService {
     @Autowired
     private SachRepository sachRepository;
+    @Autowired
+    private DanhMucRepository danhMucRepository;
     @Autowired
     private ChiTietDonHangRepository chiTietDonHangRepository;
 
@@ -132,10 +136,46 @@ public class SachService {
 
     public List<SachDetailDto> getAllPaging(Pageable pageable) {
         Page<SachEntity> sachPage = sachRepository.findAll(pageable);
+        if (sachPage.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy dữ liệu sách cho trang này");
+        }
         return sachPage.stream()
                 .filter(sach -> sach.getIdSach() != 0)
                 .map(SachDetailDto::new)
                 .collect(Collectors.toList());
     }
     
+    public List<SachDetailDto> getSachByDanhMucPaging(Pageable pageable, Integer idDanhMuc){
+        Page<SachEntity> sachPage = sachRepository.findByIdDanhMuc(pageable, idDanhMuc);
+        if (sachPage.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy sách nào trong danh mục này ở trang hiện tại");
+        }
+        return sachPage.stream()
+                .filter(sach -> sach.getIdSach() != 0)
+                .map(SachDetailDto::new)
+                .collect(Collectors.toList());
+    }
+    public List<SachDetailDto> getSachByLinhVucPaging(Pageable pageable, Integer idLinhVuc) {
+        // Lấy danh sách các danh mục thuộc lĩnh vực
+        List<DanhMucEntity> listDanhMuc = danhMucRepository.findByIdLinhVuc(idLinhVuc);
+        if (listDanhMuc.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy danh mục nào thuộc lĩnh vực này");
+        }
+
+        // Lấy danh sách id của các danh mục
+        List<Integer> danhMucIds = listDanhMuc.stream()
+                .map(DanhMucEntity::getIdDanhMuc)
+                .collect(Collectors.toList());
+
+        // Thêm phương thức mới vào SachRepository để lấy sách theo danh sách idDanhMuc
+        Page<SachEntity> sachPage = sachRepository.findByIdDanhMucIn(pageable, danhMucIds);
+        if (sachPage.isEmpty()) {
+            throw new NotFoundException("Không tìm thấy sách nào thuộc lĩnh vực này ở trang hiện tại");
+        }
+
+        return sachPage.stream()
+                .filter(sach -> sach.getIdSach() != 0)
+                .map(SachDetailDto::new)
+                .collect(Collectors.toList());
+    }
 }

@@ -8,6 +8,8 @@ import com.bnpstudio.bookstore.service.UserService;
 import com.bnpstudio.bookstore.dto.UserDetailDto;
 import com.bnpstudio.bookstore.entity.ResponseObject;
 import com.bnpstudio.bookstore.dto.ChangePasswordDto;
+import com.bnpstudio.bookstore.dto.LoginDto;
+import com.bnpstudio.bookstore.dto.JwtResponseDto;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,7 +39,7 @@ public class UserController {
                         "Change password thành công",
                         userService.changePassword(email, passwordDto)));
     }
-
+ 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @PutMapping("/update-profile")
     public ResponseEntity<ResponseObject<UserDetailDto>> updateProfile(
@@ -48,5 +50,15 @@ public class UserController {
                         HttpStatus.OK,
                         "Update profile thành công",
                         userService.updateProfile(email, userDto)));
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @PostMapping("/login")
+    public ResponseEntity<ResponseObject<JwtResponseDto>> login(@RequestBody LoginDto loginDto) {
+        return ResponseEntity.ok(
+                new ResponseObject(
+                        HttpStatus.OK,
+                        "Đăng nhập thành công",
+                        userService.login(loginDto)));
     }
 }

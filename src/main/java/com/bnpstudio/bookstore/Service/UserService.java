@@ -14,6 +14,9 @@ import com.bnpstudio.bookstore.entity.UserEntity;
 import com.bnpstudio.bookstore.exception.*;
 import com.bnpstudio.bookstore.dto.UserDetailDto;
 import com.bnpstudio.bookstore.dto.ChangePasswordDto;
+import com.bnpstudio.bookstore.dto.LoginDto;
+import com.bnpstudio.bookstore.dto.JwtResponseDto;
+import com.bnpstudio.bookstore.security.JwtUtils;
 
 @Service
 public class UserService {
@@ -25,6 +28,9 @@ public class UserService {
     
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private JwtUtils jwtUtils;
     
     public UserEntity register(UserDetailDto userDto) {
         System.out.println("hahaha:" + userRepository.findByEmail(userDto.getEmail()));
@@ -108,5 +114,32 @@ public class UserService {
             }
         }
         return userRepository.save(user);
+    }
+    
+    public JwtResponseDto login(LoginDto loginDto) {
+        UserEntity user = userRepository.findByEmail(loginDto.getEmail());
+        if (user == null) {
+            throw new NotFoundException("Email không tồn tại");
+        }
+        
+        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+            throw new ValidationException("Mật khẩu không đúng");
+        }
+        Set<ConstraintViolation<LoginDto>> violations = validator.validate(loginDto);
+        if (!violations.isEmpty()) {
+            String errorMessages = violations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
+        String jwt = jwtUtils.generateJwtToken(user.getEmail());
+        
+        return new JwtResponseDto(
+            jwt,
+            "Bearer",
+            user.getEmail(),
+            user.getName(),
+            user.isAdmin()
+        );
     }
 }

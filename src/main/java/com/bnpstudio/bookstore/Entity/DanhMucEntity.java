@@ -2,6 +2,8 @@ package com.bnpstudio.bookstore.entity;
 
 
 
+import com.bnpstudio.bookstore.dto.DanhMucDto;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

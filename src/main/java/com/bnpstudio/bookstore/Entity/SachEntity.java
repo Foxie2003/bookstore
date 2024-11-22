@@ -19,41 +19,41 @@ public class SachEntity {
     private Integer IdSach;
 
     @Column(name = "IdDanhMuc")
-    private Integer IdDanhMuc;
+    private Integer idDanhMuc;
 
     @Column(name = "TenSach")
     private String tenSach;
 
     @Column(name = "GiaBan")
-    private Float GiaBan;
+    private Float giaBan;
 
     @Column(name = "TacGia")
     private String tacGia;
 
     @Column(name = "SoLuong")
-    private Integer SoLuong;
+    private Integer soLuong;
 
     @Column(name = "AnhBia")
-    private String AnhBia;
+    private String anhBia;
 
     @Column(name = "GhiChu")
-    private String GhiChu;
+    private String ghiChu;
 
     @Column(name = "NhaCungCap")
-    private String NhaCungCap;
+    private String nhaCungCap;
 
     
 
     public SachEntity(SachDetailDto sachDetail) {
         this.IdSach = sachDetail.getIdSach();
-        this.IdDanhMuc = sachDetail.getIdDanhMuc();
+        this.idDanhMuc = sachDetail.getIdDanhMuc();
         this.tenSach = sachDetail.getTenSach();
-        this.GiaBan = sachDetail.getGiaBan();
+        this.giaBan = sachDetail.getGiaBan();
         this.tacGia = sachDetail.getTacGia();
-        this.SoLuong = sachDetail.getSoLuong();
-        this.AnhBia = sachDetail.getAnhBia();
-        this.GhiChu = sachDetail.getGhiChu();
-        this.NhaCungCap = sachDetail.getNhaCungCap();
+        this.soLuong = sachDetail.getSoLuong();
+        this.anhBia = sachDetail.getAnhBia();
+        this.ghiChu = sachDetail.getGhiChu();
+        this.nhaCungCap = sachDetail.getNhaCungCap();
     }
     
    

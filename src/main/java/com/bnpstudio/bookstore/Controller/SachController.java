@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-
 @RestController
 @RequestMapping("/sach")
 public class SachController {
@@ -66,10 +65,9 @@ public class SachController {
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject(HttpStatus.OK, "query product succsessfully", sachs));
         } else {
-            throw new NotFoundException("cannot found product with name= " + name); 
+            throw new NotFoundException("cannot found product with name= " + name);
         }
     }
-
 
     // @PostMapping("/getByNameAndTacGia")
     // List<SachDetailDto> getByNameAndTacGia(@RequestBody SachDetailDto sach) {
@@ -90,21 +88,20 @@ public class SachController {
 
             SachDetailDto result = sachService.insertProduct(sachDetailDto);
             return ResponseEntity.ok(
-                new ResponseObject<>(HttpStatus.OK, "Thêm sách thành công", result)
-            );
+                    new ResponseObject<>(HttpStatus.OK, "Thêm sách thành công", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(new ResponseObject<>(HttpStatus.BAD_REQUEST, e.getMessage(), null));
         }
     }
+
     @PutMapping("/update")
     public ResponseEntity<ResponseObject<SachDetailDto>> updateProduct(
-        @Valid @RequestBody SachDetailDto sachDetailDto) {
+            @Valid @RequestBody SachDetailDto sachDetailDto) {
         try {
             SachDetailDto result = sachService.updateProduct(sachDetailDto);
             return ResponseEntity.ok(
-                new ResponseObject<>(HttpStatus.OK, "Cập nhật sách thành công", result)
-            );
+                    new ResponseObject<>(HttpStatus.OK, "Cập nhật sách thành công", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(new ResponseObject<>(HttpStatus.BAD_REQUEST, e.getMessage(), null));
@@ -149,4 +146,50 @@ public class SachController {
                             null));
         }
     }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @GetMapping("/getSachByIdDanhMuc/{idDanhMuc}")
+    public ResponseEntity<ResponseObject<List<SachDetailDto>>> getSachPagingbyDanhMuc(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @PathVariable Integer idDanhMuc) {
+        try {
+            Pageable paging = PageRequest.of(page, size);
+            List<SachDetailDto> sachPage = sachService.getSachByDanhMucPaging(paging,idDanhMuc);
+
+            return ResponseEntity.ok(new ResponseObject(
+                    HttpStatus.OK,
+                    "Lấy danh sách sách thành công",
+                    sachPage));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseObject(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            "Lỗi khi lấy danh sách sách: " + e.getMessage(),
+                            null));
+        }
+    }
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @GetMapping("/getSachByIdLinhVuc/{idLinhVuc}")
+    public ResponseEntity<ResponseObject<List<SachDetailDto>>> getSachPagingbyLinhVuc(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @PathVariable Integer idLinhVuc) {
+        try {
+            Pageable paging = PageRequest.of(page, size);
+            List<SachDetailDto> sachPage = sachService.getSachByLinhVucPaging(paging,idLinhVuc);
+
+            return ResponseEntity.ok(new ResponseObject(
+                    HttpStatus.OK,
+                    "Lấy danh sách sách thành công",
+                    sachPage));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseObject(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            "Lỗi khi lấy danh sách sách: " + e.getMessage(),
+                            null));
+        }
+    }
+
 }
