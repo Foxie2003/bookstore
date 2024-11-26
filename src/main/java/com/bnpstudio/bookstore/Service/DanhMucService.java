@@ -2,6 +2,7 @@ package com.bnpstudio.bookstore.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,13 @@ import com.bnpstudio.bookstore.dto.DanhMucDto;
 import com.bnpstudio.bookstore.entity.DanhMucEntity;
 import com.bnpstudio.bookstore.entity.LinhVucEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
+import com.bnpstudio.bookstore.exception.ValidationException;
 import com.bnpstudio.bookstore.exception.BadRequestException;
 import com.bnpstudio.bookstore.repository.DanhMucRepository;
 import com.bnpstudio.bookstore.repository.LinhVucRepository;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
 @Service
 public class DanhMucService {
@@ -95,11 +100,19 @@ public class DanhMucService {
             throw new NotFoundException("Không tìm thấy lĩnh vực nào có id = " + id);
         return new DanhMucDto(danhMuc.get());
     }
-
+    @Autowired
+    private Validator validator;
     public DanhMucDto insertDanhMuc(DanhMucDto danhMuc) {
         danhMuc = normalizeData(danhMuc);
         validateInsertDanhMuc(danhMuc);
         DanhMucEntity danhMucEntity = new DanhMucEntity(danhMuc);
+        Set<ConstraintViolation<DanhMucEntity>> dtoViolations = validator.validate(danhMucEntity);
+        if (!dtoViolations.isEmpty()) {
+            String errorMessages = dtoViolations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
         danhMucEntity.setIdDanhMuc(null);
         danhMucRepository.save(danhMucEntity);
         return new DanhMucDto(danhMucEntity);
@@ -109,6 +122,13 @@ public class DanhMucService {
         danhMuc = normalizeData(danhMuc);
         validateUpdateDanhMuc(danhMuc);
         DanhMucEntity danhMucEntity = new DanhMucEntity(danhMuc);
+        Set<ConstraintViolation<DanhMucEntity>> dtoViolations = validator.validate(danhMucEntity);
+        if (!dtoViolations.isEmpty()) {
+            String errorMessages = dtoViolations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
         danhMucRepository.save(danhMucEntity);
         return danhMuc;
     }

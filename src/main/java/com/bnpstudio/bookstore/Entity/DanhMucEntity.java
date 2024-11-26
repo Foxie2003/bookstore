@@ -1,7 +1,5 @@
 package com.bnpstudio.bookstore.entity;
 
-
-
 import com.bnpstudio.bookstore.dto.DanhMucDto;
 
 import jakarta.persistence.Column;
@@ -13,6 +11,8 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 
 @Data
 @NoArgsConstructor
@@ -25,10 +25,12 @@ public class DanhMucEntity {
     @Column(name = "IdDanhMuc")
     private Integer idDanhMuc;
 
+    @NotNull(message = "ID lĩnh vực không được để trống")
     @Column(name = "IdLinhVuc")
     private Integer idLinhVuc;
 
-    @Column(name = "TenDanhMuc")
+    @NotEmpty(message = "Tên danh mục không được để trống")
+    @Column(name = "TenDanhMuc", unique = true)
     private String tenDanhMuc;
 
     @Column(name = "MoTa")

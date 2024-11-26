@@ -2,6 +2,7 @@ package com.bnpstudio.bookstore.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +16,19 @@ import com.bnpstudio.bookstore.entity.ChiTietDonHangEntity;
 import com.bnpstudio.bookstore.entity.DanhMucEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
 import com.bnpstudio.bookstore.exception.NotImplementedException;
+import com.bnpstudio.bookstore.exception.ValidationException;
 import com.bnpstudio.bookstore.repository.ChiTietDonHangRepository;
 import com.bnpstudio.bookstore.repository.DanhMucRepository;
 import com.bnpstudio.bookstore.repository.SachRepository;
+
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 
 @Service
 public class SachService {
+     @Autowired
+    private Validator validator;
     @Autowired
     private SachRepository sachRepository;
     @Autowired
@@ -88,7 +95,14 @@ public class SachService {
         if (foundProducts.size() > 0) {
             throw new NotImplementedException("Sản phẩm đã tồn tại");
         }
-        
+        // Validate DTO
+        Set<ConstraintViolation<SachEntity>> dtoViolations = validator.validate(sach);
+        if (!dtoViolations.isEmpty()) {
+            String errorMessages = dtoViolations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
         sach.setIdSach(null);
         sachRepository.save(sach);
         return new SachDetailDto(sach);
@@ -109,7 +123,13 @@ public class SachService {
         //         && sach.getTacGia().compareToIgnoreCase(sach_old.get().getTacGia()) != 0) {
         //     throw new NotImplementedException("Sản phẩm đã tồn tại");
         // }
-        
+        Set<ConstraintViolation<SachEntity>> dtoViolations = validator.validate(sach);
+        if (!dtoViolations.isEmpty()) {
+            String errorMessages = dtoViolations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
         sachRepository.save(sach);
         return new SachDetailDto(sach);
     }

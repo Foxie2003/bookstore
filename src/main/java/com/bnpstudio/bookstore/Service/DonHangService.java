@@ -1,6 +1,7 @@
 package com.bnpstudio.bookstore.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,15 @@ import com.bnpstudio.bookstore.dto.ChiTietDonHangDetailDto;
 import com.bnpstudio.bookstore.dto.DonHangDetailDto;
 import com.bnpstudio.bookstore.entity.ChiTietDonHangEntity;
 import com.bnpstudio.bookstore.entity.DonHangEntity;
+import com.bnpstudio.bookstore.entity.SachEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
+import com.bnpstudio.bookstore.exception.ValidationException;
 import com.bnpstudio.bookstore.repository.ChiTietDonHangRepository;
 import com.bnpstudio.bookstore.repository.DonHangRepository;
+import com.bnpstudio.bookstore.repository.SachRepository;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
 @Service
 public class DonHangService {
@@ -22,6 +29,8 @@ public class DonHangService {
     DonHangRepository donHangRepository;
     @Autowired
     ChiTietDonHangRepository chiTietDonHangRepository;
+    @Autowired
+    SachRepository sachRepository;
     public List<DonHangDetailDto> getAll() {
         List<DonHangEntity> donHangs = donHangRepository.findAll();
         System.out.println("donhangs: " + donHangs);
@@ -66,5 +75,62 @@ public class DonHangService {
         DonHangDetailDto donHangDetailDto = new DonHangDetailDto(dh);
         donHangDetailDto.setChiTietDonHangs(chiTietDonHangDetailDtos);
         return donHangDetailDto;
+    }
+    @Autowired
+    private Validator validator;
+    public DonHangDetailDto insertDonHang(DonHangDetailDto detail) {
+        // Validate dữ liệu đầu vào
+        if (detail.getIdNguoiDung() == null) {
+            throw new IllegalArgumentException("ID người dùng không được để trống");
+        }
+        if (detail.getTenNguoiNhan() == null || detail.getTenNguoiNhan().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên người nhận không được để trống");
+        }
+        if (detail.getSoDienThoai() == null || detail.getSoDienThoai().trim().isEmpty()) {
+            throw new IllegalArgumentException("Số điện thoại không được để trống");
+        }
+        if (detail.getDiaChi() == null || detail.getDiaChi().trim().isEmpty()) {
+            throw new IllegalArgumentException("Địa chỉ không được để trống");
+        }
+        // Tạo đơn hàng mới
+        DonHangEntity donHang = new DonHangEntity(detail);
+        Set<ConstraintViolation<DonHangEntity>> dtoViolations = validator.validate(donHang);
+       if (!dtoViolations.isEmpty()) {
+           String errorMessages = dtoViolations.stream()
+               .map(ConstraintViolation::getMessage)
+               .collect(Collectors.joining(", "));
+           throw new ValidationException(errorMessages);
+       }
+        
+        // Set các giá trị mặc định
+        donHang.setNgayTao(new java.sql.Date(System.currentTimeMillis()));
+        donHang.setTrangThai("Chờ xác nhận");
+        donHang.setIdDonHang(null);
+        // Lưu đơn hàng
+        donHang = donHangRepository.save(donHang);
+        // Lưu chi tiết đơn hàng
+        if (detail.getChiTietDonHangs() != null && !detail.getChiTietDonHangs().isEmpty()) {
+            for (ChiTietDonHangDetailDto chiTiet : detail.getChiTietDonHangs()) {
+                ChiTietDonHangEntity chiTietEntity = new ChiTietDonHangEntity();
+                chiTietEntity.setIdDonHang(donHang.getIdDonHang());
+                chiTietEntity.setIdSach(chiTiet.getIdSach());
+                chiTietEntity.setTenSach(chiTiet.getTenSach());
+                chiTietEntity.setSoLuong(chiTiet.getSoLuong());
+                chiTietEntity.setDonGia(chiTiet.getDonGia());
+                SachEntity sach = sachRepository.findById(chiTiet.getIdSach()).orElse(null);
+                if(sach==null){
+                    throw new NotFoundException("Không tồn tại sách có id= "+ chiTiet.getIdSach());
+                }
+                if(sach.getSoLuong()< chiTiet.getSoLuong()){
+                    throw new ValidationException("Số lượng sách trong kho không đủ");
+                }
+                sach.setSoLuong(sach.getSoLuong()-chiTiet.getSoLuong());
+                sachRepository.save(sach);
+                chiTietDonHangRepository.save(chiTietEntity);
+            }
+        }
+        
+        // Trả về thông tin đơn hàng đã tạo
+        return getById(donHang.getIdDonHang());
     }
 }

@@ -2,6 +2,7 @@ package com.bnpstudio.bookstore.entity;
 
 import com.bnpstudio.bookstore.dto.LinhVucDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,8 @@ public class LinhVucEntity {
     @Column(name = "IdLinhVuc")
     private Integer idLinhVuc;
 
-    @Column(name = "TenLinhVuc")
+    @NotEmpty(message = "Tên lĩnh vực không được để trống")
+    @Column(name = "TenLinhVuc", unique = true)
     private String tenLinhVuc;
 
     @Column(name = "MoTa")

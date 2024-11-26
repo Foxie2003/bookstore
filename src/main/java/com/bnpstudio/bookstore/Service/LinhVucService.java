@@ -2,15 +2,21 @@ package com.bnpstudio.bookstore.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bnpstudio.bookstore.repository.LinhVucRepository;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+
 import com.bnpstudio.bookstore.dto.LinhVucDto;
 import com.bnpstudio.bookstore.entity.LinhVucEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
+import com.bnpstudio.bookstore.exception.ValidationException;
 import com.bnpstudio.bookstore.exception.BadRequestException;
 
 @Service
@@ -63,6 +69,7 @@ public class LinhVucService {
             throw new NotFoundException("Không tìm thấy lĩnh vực nào");
         return linhVucs.stream()
                 .map(LinhVucDto::new)
+                .filter(linhVuc -> linhVuc.getIdLinhVuc() != 0)
                 .collect(Collectors.toList());
     }
 
@@ -72,11 +79,19 @@ public class LinhVucService {
             throw new NotFoundException("Không tìm thấy lĩnh vực nào với id = " + id);
         return new LinhVucDto(linhVuc.get());
     }
-
+    @Autowired
+    private Validator validator;
     public LinhVucDto insertLinhVuc(LinhVucDto linhVuc) {
         linhVuc = normalizeData(linhVuc);
         validateInsertLinhVuc(linhVuc);
         LinhVucEntity linhVucEntity = new LinhVucEntity(linhVuc);
+        Set<ConstraintViolation<LinhVucEntity>> dtoViolations = validator.validate(linhVucEntity);
+       if (!dtoViolations.isEmpty()) {
+           String errorMessages = dtoViolations.stream()
+               .map(ConstraintViolation::getMessage)
+               .collect(Collectors.joining(", "));
+           throw new ValidationException(errorMessages);
+       }
         linhVucEntity.setIdLinhVuc(null);
         linhVucRepository.save(linhVucEntity);
         return new LinhVucDto(linhVucEntity);
@@ -86,6 +101,13 @@ public class LinhVucService {
         linhVuc = normalizeData(linhVuc);
         validateUpdateLinhVuc(linhVuc);
         LinhVucEntity linhVucEntity = new LinhVucEntity(linhVuc);
+        Set<ConstraintViolation<LinhVucEntity>> dtoViolations = validator.validate(linhVucEntity);
+        if (!dtoViolations.isEmpty()) {
+            String errorMessages = dtoViolations.stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+            throw new ValidationException(errorMessages);
+        }
         linhVucRepository.save(linhVucEntity);
         return linhVuc;
     }
