@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.bnpstudio.bookstore.repository.DanhMucRepository;
 import com.bnpstudio.bookstore.repository.LinhVucRepository;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
 import com.bnpstudio.bookstore.dto.LinhVucDto;
+import com.bnpstudio.bookstore.entity.DanhMucEntity;
 import com.bnpstudio.bookstore.entity.LinhVucEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
 import com.bnpstudio.bookstore.exception.ValidationException;
@@ -23,6 +25,8 @@ import com.bnpstudio.bookstore.exception.BadRequestException;
 public class LinhVucService {
     @Autowired
     private LinhVucRepository linhVucRepository;
+    @Autowired
+    private DanhMucRepository danhMucRepository;
 
     private LinhVucDto normalizeData(LinhVucDto linhVuc) {
         if (linhVuc == null)
@@ -118,7 +122,11 @@ public class LinhVucService {
         Optional<LinhVucEntity> linhVuc = linhVucRepository.findById(id);
         if (linhVuc.isEmpty())
             throw new BadRequestException("Lĩnh vực có id = " + id + " không tồn tại");
-        linhVucRepository.deleteById(id);
+        List<DanhMucEntity> danhMucs=danhMucRepository.findByIdLinhVuc(id);
+        if(danhMucs.size()!=0){
+            throw new BadRequestException("Lĩnh vực có tồn tại danh mục không thể xóa khi chưa xóa danh mục");
+        }
+            linhVucRepository.deleteById(id);
         return new LinhVucDto(linhVuc.get());
     }
 }

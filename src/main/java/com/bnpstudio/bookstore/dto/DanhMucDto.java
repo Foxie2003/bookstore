@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class DanhMucDto {
     private Integer idDanhMuc;
     private Integer idLinhVuc;
+    private String tenLinhVuc;
     private String tenDanhMuc;
     private String moTa;
     public DanhMucDto(DanhMucEntity danhMuc) {

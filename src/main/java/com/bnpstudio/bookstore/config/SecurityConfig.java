@@ -40,10 +40,11 @@ public class SecurityConfig {
                 // Cho phép tất cả các request khác
                 // .anyRequest().permitAll()
                 .requestMatchers("/linhVuc/**").permitAll()
-                .requestMatchers("/danhMuc/**").authenticated()
+                .requestMatchers("/danhMuc/**").permitAll()
                 .requestMatchers("/donHang/**").permitAll()
+                .requestMatchers("/uploads/images/**").permitAll()
                 .requestMatchers("/dia-chi/**").permitAll()
-                .requestMatchers("/sach/**").authenticated()
+                .requestMatchers("/sach/**").permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .csrf(csrf -> csrf.disable());

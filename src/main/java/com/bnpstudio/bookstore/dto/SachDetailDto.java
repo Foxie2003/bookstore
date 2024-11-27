@@ -41,6 +41,8 @@ public class SachDetailDto {
     @NotBlank(message = "Nhà cung cấp không được để trống")
     private String NhaCungCap;
 
+    private String TenDanhMuc;
+
     public SachDetailDto(SachEntity sach) {
         this.IdSach = sach.getIdSach();
         this.IdDanhMuc = sach.getIdDanhMuc();

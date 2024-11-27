@@ -1,6 +1,8 @@
 package com.bnpstudio.bookstore.controller;
 
 import org.springframework.http.ResponseEntity;
+
+import com.bnpstudio.bookstore.dto.PageResponse;
 import com.bnpstudio.bookstore.dto.SachDetailDto;
 import org.springframework.data.domain.PageRequest;
 import com.bnpstudio.bookstore.service.SachService;
@@ -125,22 +127,47 @@ public class SachController {
         }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @GetMapping("/getSachPaging")
-    public ResponseEntity<ResponseObject<List<SachDetailDto>>> getAllPaging(
+    public ResponseEntity<ResponseObject<PageResponse<SachDetailDto>>> getAllPaging(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
+            // Validate size
+            if (size <= 0) {
+                return ResponseEntity.badRequest()
+                        .body(new ResponseObject<>(
+                                HttpStatus.BAD_REQUEST,
+                                "Kích thước trang phải lớn hơn 0",
+                                null));
+            }
+            
+            // Validate page
+            if (page < 0) {
+                return ResponseEntity.badRequest()
+                        .body(new ResponseObject<>(
+                                HttpStatus.BAD_REQUEST,
+                                "Số trang không được âm",
+                                null));
+            }
+            
             Pageable paging = PageRequest.of(page, size);
-            List<SachDetailDto> sachPage = sachService.getAllPaging(paging);
+            PageResponse<SachDetailDto> sachPage = sachService.getAllPaging(paging);
 
-            return ResponseEntity.ok(new ResponseObject(
+            return ResponseEntity.ok(new ResponseObject<>(
                     HttpStatus.OK,
                     "Lấy danh sách sách thành công",
                     sachPage));
+                    
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseObject<>(
+                            HttpStatus.NOT_FOUND,
+                            e.getMessage(),
+                            null));
         } catch (Exception e) {
+            e.printStackTrace(); // Thêm dòng này để debug
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseObject(
+                    .body(new ResponseObject<>(
                             HttpStatus.INTERNAL_SERVER_ERROR,
                             "Lỗi khi lấy danh sách sách: " + e.getMessage(),
                             null));
@@ -155,7 +182,7 @@ public class SachController {
             @PathVariable Integer idDanhMuc) {
         try {
             Pageable paging = PageRequest.of(page, size);
-            List<SachDetailDto> sachPage = sachService.getSachByDanhMucPaging(paging,idDanhMuc);
+            PageResponse<SachDetailDto> sachPage = sachService.getSachByDanhMucPaging(paging,idDanhMuc);
 
             return ResponseEntity.ok(new ResponseObject(
                     HttpStatus.OK,
@@ -177,7 +204,7 @@ public class SachController {
             @PathVariable Integer idLinhVuc) {
         try {
             Pageable paging = PageRequest.of(page, size);
-            List<SachDetailDto> sachPage = sachService.getSachByLinhVucPaging(paging,idLinhVuc);
+            PageResponse<SachDetailDto> sachPage = sachService.getSachByLinhVucPaging(paging,idLinhVuc);
 
             return ResponseEntity.ok(new ResponseObject(
                     HttpStatus.OK,

@@ -5,17 +5,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bnpstudio.bookstore.dto.DanhMucDto;
 import com.bnpstudio.bookstore.entity.DanhMucEntity;
 import com.bnpstudio.bookstore.entity.LinhVucEntity;
+import com.bnpstudio.bookstore.entity.SachEntity;
 import com.bnpstudio.bookstore.exception.NotFoundException;
 import com.bnpstudio.bookstore.exception.ValidationException;
 import com.bnpstudio.bookstore.exception.BadRequestException;
 import com.bnpstudio.bookstore.repository.DanhMucRepository;
 import com.bnpstudio.bookstore.repository.LinhVucRepository;
+import com.bnpstudio.bookstore.repository.SachRepository;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -27,6 +31,8 @@ public class DanhMucService {
 
     @Autowired
     private LinhVucRepository linhVucRepository;
+    @Autowired
+    private SachRepository sachRepository;
 
     private DanhMucDto normalizeData(DanhMucDto danhMuc) {
         if (danhMuc == null)
@@ -81,16 +87,31 @@ public class DanhMucService {
         if (danhMucs.isEmpty())
             throw new NotFoundException("Không tìm thấy danh mục nào");
         return danhMucs.stream()
-                .map(DanhMucDto::new)
+                .map(danhMuc -> {
+                    DanhMucDto dto = new DanhMucDto(danhMuc);
+                    Optional<LinhVucEntity> linhVuc = linhVucRepository.findById(danhMuc.getIdLinhVuc());
+                    if (linhVuc.isPresent()) {
+                        dto.setTenLinhVuc(linhVuc.get().getTenLinhVuc());
+                    }
+                    return dto;
+                })
+                .filter(danhMuc -> danhMuc.getIdDanhMuc() != 0)
                 .collect(Collectors.toList());
     }
 
-    public List<DanhMucDto> getByIdDanhMuc(Integer idLinhVuc) {
+    public List<DanhMucDto> getByIdLinhVuc(Integer idLinhVuc) {
         List<DanhMucEntity> danhMucs = danhMucRepository.findByIdLinhVuc(idLinhVuc);
         if (danhMucs.isEmpty())
             throw new NotFoundException("Không tìm thấy danh mục nào có id lĩnh vực = " + idLinhVuc);
         return danhMucs.stream()
-                .map(DanhMucDto::new)
+                .map(danhMuc -> {
+                    DanhMucDto dto = new DanhMucDto(danhMuc);
+                    Optional<LinhVucEntity> linhVuc = linhVucRepository.findById(danhMuc.getIdLinhVuc());
+                    if (linhVuc.isPresent()) {
+                        dto.setTenLinhVuc(linhVuc.get().getTenLinhVuc());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -98,8 +119,14 @@ public class DanhMucService {
         Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(id);
         if (danhMuc.isEmpty())
             throw new NotFoundException("Không tìm thấy lĩnh vực nào có id = " + id);
-        return new DanhMucDto(danhMuc.get());
+        DanhMucDto dto = new DanhMucDto(danhMuc.get());
+        Optional<LinhVucEntity> linhVuc = linhVucRepository.findById(danhMuc.get().getIdLinhVuc());
+        if (linhVuc.isPresent()) {
+            dto.setTenLinhVuc(linhVuc.get().getTenLinhVuc());
+        }
+        return dto;
     }
+
     @Autowired
     private Validator validator;
     public DanhMucDto insertDanhMuc(DanhMucDto danhMuc) {
@@ -131,5 +158,14 @@ public class DanhMucService {
         }
         danhMucRepository.save(danhMucEntity);
         return danhMuc;
+    }
+    public void deleteDanhMuc(Integer id) {
+        Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(id);
+        if (danhMuc.isEmpty())
+            throw new NotFoundException("Không tìm thấy danh mục nào có id = " + id);
+        Page<SachEntity> sachs = sachRepository.findByIdDanhMuc(Pageable.unpaged(), danhMuc.get().getIdDanhMuc());
+        if (!sachs.isEmpty())
+            throw new BadRequestException("Danh mục có tồn tại sách không thể xóa khi chưa xóa sách");
+        danhMucRepository.delete(danhMuc.get());
     }
 }

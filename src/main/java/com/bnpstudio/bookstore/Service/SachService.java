@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.bnpstudio.bookstore.dto.PageResponse;
 import com.bnpstudio.bookstore.dto.SachDetailDto;
 import com.bnpstudio.bookstore.entity.SachEntity;
 import com.bnpstudio.bookstore.entity.ChiTietDonHangEntity;
@@ -64,7 +65,12 @@ public class SachService {
         SachEntity sach = sachRepository.findById(id);
         if (sach == null)
             throw new NotFoundException("Sách không tồn tại");
-        return new SachDetailDto(sach);
+        Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(sach.getIdDanhMuc());
+        SachDetailDto dto = new SachDetailDto(sach);
+        if (danhMuc.isPresent()) {
+            dto.setTenDanhMuc(danhMuc.get().getTenDanhMuc());
+        }
+        return dto;
     }
 
     public List<SachDetailDto> findByName(Pageable pageable,String name) {
@@ -154,28 +160,55 @@ public class SachService {
         sachRepository.deleteById(sach.get().getIdSach());
     }
 
-    public List<SachDetailDto> getAllPaging(Pageable pageable) {
-        Page<SachEntity> sachPage = sachRepository.findAll(pageable);
+    public PageResponse<SachDetailDto> getAllPaging(Pageable pageable) {
+        Page<SachEntity> sachPage = sachRepository.findByIdSachNot(0, pageable);
         if (sachPage.isEmpty()) {
             throw new NotFoundException("Không tìm thấy dữ liệu sách cho trang này");
         }
-        return sachPage.stream()
-                .filter(sach -> sach.getIdSach() != 0)
-                .map(SachDetailDto::new)
+        
+        List<SachDetailDto> sachDtos = sachPage.getContent().stream()
+                .map(sach -> {
+                    SachDetailDto dto = new SachDetailDto(sach);
+                    Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(sach.getIdDanhMuc());
+                    if (danhMuc.isPresent()) {
+                        dto.setTenDanhMuc(danhMuc.get().getTenDanhMuc());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
+                
+        return new PageResponse<>(
+            sachDtos,
+            sachPage.getTotalPages(),
+            sachPage.getTotalElements(),
+            pageable.getPageNumber()
+        );
     }
     
-    public List<SachDetailDto> getSachByDanhMucPaging(Pageable pageable, Integer idDanhMuc){
+    public PageResponse<SachDetailDto> getSachByDanhMucPaging(Pageable pageable, Integer idDanhMuc){
         Page<SachEntity> sachPage = sachRepository.findByIdDanhMuc(pageable, idDanhMuc);
         if (sachPage.isEmpty()) {
             throw new NotFoundException("Không tìm thấy sách nào trong danh mục này ở trang hiện tại");
         }
-        return sachPage.stream()
+        List<SachDetailDto> sachDtos = sachPage.stream()
                 .filter(sach -> sach.getIdSach() != 0)
-                .map(SachDetailDto::new)
+                .map(sach -> {
+                    SachDetailDto dto = new SachDetailDto(sach);
+                    Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(sach.getIdDanhMuc());
+                    if (danhMuc.isPresent()) {
+                        dto.setTenDanhMuc(danhMuc.get().getTenDanhMuc());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
+        return new PageResponse<>(
+            sachDtos,
+            sachPage.getTotalPages(),
+            sachPage.getTotalElements(),
+            pageable.getPageNumber()
+        );
     }
-    public List<SachDetailDto> getSachByLinhVucPaging(Pageable pageable, Integer idLinhVuc) {
+    public PageResponse<SachDetailDto> getSachByLinhVucPaging(Pageable pageable, Integer idLinhVuc) {
         // Lấy danh sách các danh mục thuộc lĩnh vực
         List<DanhMucEntity> listDanhMuc = danhMucRepository.findByIdLinhVuc(idLinhVuc);
         if (listDanhMuc.isEmpty()) {
@@ -193,9 +226,22 @@ public class SachService {
             throw new NotFoundException("Không tìm thấy sách nào thuộc lĩnh vực này ở trang hiện tại");
         }
 
-        return sachPage.stream()
+        List<SachDetailDto> sachDtos = sachPage.stream()
                 .filter(sach -> sach.getIdSach() != 0)
-                .map(SachDetailDto::new)
+                .map(sach -> {
+                    SachDetailDto dto = new SachDetailDto(sach);
+                    Optional<DanhMucEntity> danhMuc = danhMucRepository.findById(sach.getIdDanhMuc());
+                    if (danhMuc.isPresent()) {
+                        dto.setTenDanhMuc(danhMuc.get().getTenDanhMuc());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
+        return new PageResponse<>(
+            sachDtos,
+            sachPage.getTotalPages(),
+            sachPage.getTotalElements(),
+            pageable.getPageNumber()
+        );
     }
 }
